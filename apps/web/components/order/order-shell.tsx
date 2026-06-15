@@ -7,8 +7,15 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { motion, AnimatePresence } from "framer-motion"
 import { Minus, Plus, Trash2, ShoppingBag, Truck, Store } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import {
+  Field as FormFieldRoot,
+  FieldError,
+  FieldLabel,
+} from "@workspace/ui/components/field"
+import {
+  InputGroup,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { Separator } from "@workspace/ui/components/separator"
 import { cn } from "@workspace/ui/lib/utils"
@@ -293,47 +300,64 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                     label="First Name *"
                     error={form.formState.errors.customer?.firstName?.message}
                   >
-                    <Input
-                      {...form.register("customer.firstName")}
-                      placeholder="Kenji"
-                    />
+                    <InputGroup>
+                      <InputGroupInput
+                        {...form.register("customer.firstName")}
+                        placeholder="Kenji"
+                        aria-invalid={
+                          !!form.formState.errors.customer?.firstName
+                        }
+                      />
+                    </InputGroup>
                   </Field>
                   <Field
                     label="Last Name *"
                     error={form.formState.errors.customer?.lastName?.message}
                   >
-                    <Input
-                      {...form.register("customer.lastName")}
-                      placeholder="Tanaka"
-                    />
+                    <InputGroup>
+                      <InputGroupInput
+                        {...form.register("customer.lastName")}
+                        placeholder="Tanaka"
+                        aria-invalid={!!form.formState.errors.customer?.lastName}
+                      />
+                    </InputGroup>
                   </Field>
                   <Field
                     label="Email *"
                     error={form.formState.errors.customer?.email?.message}
                   >
-                    <Input
-                      {...form.register("customer.email")}
-                      type="email"
-                      placeholder="you@example.com"
-                    />
+                    <InputGroup>
+                      <InputGroupInput
+                        {...form.register("customer.email")}
+                        type="email"
+                        placeholder="you@example.com"
+                        aria-invalid={!!form.formState.errors.customer?.email}
+                      />
+                    </InputGroup>
                   </Field>
                   <Field
                     label="Phone *"
                     error={form.formState.errors.customer?.phone?.message}
                   >
-                    <Input
-                      {...form.register("customer.phone")}
-                      placeholder="+1 (212) 555-0198"
-                    />
+                    <InputGroup>
+                      <InputGroupInput
+                        {...form.register("customer.phone")}
+                        type="tel"
+                        placeholder="+1 (212) 555-0198"
+                        aria-invalid={!!form.formState.errors.customer?.phone}
+                      />
+                    </InputGroup>
                   </Field>
                   <Field
                     label="Company / Team (optional)"
                     className="sm:col-span-2"
                   >
-                    <Input
-                      {...form.register("customer.companyName")}
-                      placeholder="Optional"
-                    />
+                    <InputGroup>
+                      <InputGroupInput
+                        {...form.register("customer.companyName")}
+                        placeholder="Optional"
+                      />
+                    </InputGroup>
                   </Field>
                 </div>
               </section>
@@ -356,25 +380,33 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                         error={form.formState.errors.address?.street?.message}
                         className="sm:col-span-2"
                       >
-                        <Input
-                          {...form.register("address.street")}
-                          placeholder="Sakura Street"
-                        />
+                        <InputGroup>
+                          <InputGroupInput
+                            {...form.register("address.street")}
+                            placeholder="Sakura Street"
+                            aria-invalid={!!form.formState.errors.address?.street}
+                          />
+                        </InputGroup>
                       </Field>
                       <Field
                         label="Number *"
                         error={form.formState.errors.address?.number?.message}
                       >
-                        <Input
-                          {...form.register("address.number")}
-                          placeholder="123"
-                        />
+                        <InputGroup>
+                          <InputGroupInput
+                            {...form.register("address.number")}
+                            placeholder="123"
+                            aria-invalid={!!form.formState.errors.address?.number}
+                          />
+                        </InputGroup>
                       </Field>
                       <Field label="Bus / Apt (optional)">
-                        <Input
-                          {...form.register("address.bus")}
-                          placeholder="Apt 4B"
-                        />
+                        <InputGroup>
+                          <InputGroupInput
+                            {...form.register("address.bus")}
+                            placeholder="Apt 4B"
+                          />
+                        </InputGroup>
                       </Field>
                       <Field
                         label="Postal Code *"
@@ -382,29 +414,42 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                           form.formState.errors.address?.postalCode?.message
                         }
                       >
-                        <Input
-                          {...form.register("address.postalCode")}
-                          placeholder="10001"
-                        />
+                        <InputGroup>
+                          <InputGroupInput
+                            {...form.register("address.postalCode")}
+                            placeholder="10001"
+                            aria-invalid={
+                              !!form.formState.errors.address?.postalCode
+                            }
+                          />
+                        </InputGroup>
                       </Field>
                       <Field
                         label="City *"
                         error={form.formState.errors.address?.city?.message}
                       >
-                        <Input
-                          {...form.register("address.city")}
-                          placeholder="New York"
-                        />
+                        <InputGroup>
+                          <InputGroupInput
+                            {...form.register("address.city")}
+                            placeholder="New York"
+                            aria-invalid={!!form.formState.errors.address?.city}
+                          />
+                        </InputGroup>
                       </Field>
                       <Field
                         label="Country *"
                         error={form.formState.errors.address?.country?.message}
                         className="sm:col-span-2"
                       >
-                        <Input
-                          {...form.register("address.country")}
-                          placeholder="United States"
-                        />
+                        <InputGroup>
+                          <InputGroupInput
+                            {...form.register("address.country")}
+                            placeholder="United States"
+                            aria-invalid={
+                              !!form.formState.errors.address?.country
+                            }
+                          />
+                        </InputGroup>
                       </Field>
                     </div>
                   </motion.section>
@@ -423,10 +468,12 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                     />
                   </Field>
                   <Field label="Preferred Time (optional)">
-                    <Input
-                      {...form.register("preferredTime")}
-                      placeholder="e.g. 7:30 PM"
-                    />
+                    <InputGroup>
+                      <InputGroupInput
+                        {...form.register("preferredTime")}
+                        placeholder="e.g. 7:30 PM"
+                      />
+                    </InputGroup>
                   </Field>
                 </div>
               </section>
@@ -582,12 +629,12 @@ function Field({
   className?: string
 }) {
   return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
-      <Label className="text-xs tracking-wide text-muted-foreground">
+    <FormFieldRoot data-invalid={!!error} className={cn(className)}>
+      <FieldLabel className="text-xs tracking-wide text-muted-foreground">
         {label}
-      </Label>
+      </FieldLabel>
       {children}
-      {error && <p className="text-xs text-destructive">{error}</p>}
-    </div>
+      <FieldError>{error}</FieldError>
+    </FormFieldRoot>
   )
 }

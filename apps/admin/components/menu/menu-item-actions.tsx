@@ -1,20 +1,42 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Plus, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import { Checkbox } from "@workspace/ui/components/checkbox"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@workspace/ui/components/field"
+import {
+  InputGroup,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { Textarea } from "@workspace/ui/components/textarea"
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@workspace/ui/components/toggle-group"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import { cn } from "@workspace/ui/lib/utils"
 import { MenuItemSchema } from "@workspace/shared/schemas"
 import type { MenuItemInput } from "@workspace/shared/schemas"
 import type { DietaryTag } from "@workspace/shared/types"
@@ -169,99 +191,163 @@ function MenuItemDialog({
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex flex-col gap-4 pt-2"
         >
-          <F label="Name *" error={form.formState.errors.name?.message}>
-            <Input {...form.register("name")} placeholder="Dragon Roll" />
-          </F>
-          <F
-            label="Description *"
-            error={form.formState.errors.description?.message}
-          >
-            <Textarea
-              {...form.register("description")}
-              rows={2}
-              placeholder="Fresh ingredients…"
-            />
-          </F>
-          <div className="grid grid-cols-2 gap-4">
-            <F label="Price *" error={form.formState.errors.price?.message}>
-              <Input
-                {...form.register("price", { valueAsNumber: true })}
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="12.00"
+          <FieldGroup>
+            <Field data-invalid={!!form.formState.errors.name}>
+              <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+                Name *
+              </FieldLabel>
+              <InputGroup>
+                <InputGroupInput
+                  {...form.register("name")}
+                  placeholder="Dragon Roll"
+                  aria-invalid={!!form.formState.errors.name}
+                />
+              </InputGroup>
+              <FieldError>{form.formState.errors.name?.message}</FieldError>
+            </Field>
+
+            <Field data-invalid={!!form.formState.errors.description}>
+              <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+                Description *
+              </FieldLabel>
+              <Textarea
+                {...form.register("description")}
+                rows={2}
+                placeholder="Fresh ingredients…"
+                aria-invalid={!!form.formState.errors.description}
               />
-            </F>
-            <F
-              label="Category *"
-              error={form.formState.errors.categoryId?.message}
-            >
-              <select
-                {...form.register("categoryId")}
-                className="flex h-10 w-full rounded-md border border-input bg-input px-3 py-2 text-sm focus:ring-1 focus:ring-ring focus:outline-none"
-              >
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </F>
-          </div>
-          <F label="Image URL (optional)">
-            <Input {...form.register("image")} placeholder="https://…" />
-          </F>
-          <div>
-            <p className="mb-2 text-xs tracking-wide text-muted-foreground">
-              Dietary Tags
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {TAGS.map((tag) => {
-                const selected = (form.watch("tags") ?? []).includes(tag)
-                return (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => {
-                      const current = form.getValues("tags") ?? []
-                      form.setValue(
-                        "tags",
-                        selected
-                          ? current.filter((t) => t !== tag)
-                          : [...current, tag]
-                      )
-                    }}
-                    className={cn(
-                      "rounded border px-2.5 py-1 text-xs transition-colors",
-                      selected
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border text-muted-foreground hover:border-border/80"
-                    )}
-                  >
-                    {TAG_LABELS[tag]}
-                  </button>
-                )
-              })}
+              <FieldError>
+                {form.formState.errors.description?.message}
+              </FieldError>
+            </Field>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field data-invalid={!!form.formState.errors.price}>
+                <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+                  Price *
+                </FieldLabel>
+                <InputGroup>
+                  <InputGroupInput
+                    {...form.register("price", { valueAsNumber: true })}
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="12.00"
+                    aria-invalid={!!form.formState.errors.price}
+                  />
+                </InputGroup>
+                <FieldError>{form.formState.errors.price?.message}</FieldError>
+              </Field>
+
+              <Field data-invalid={!!form.formState.errors.categoryId}>
+                <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+                  Category *
+                </FieldLabel>
+                <Controller
+                  name="categoryId"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value || undefined}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger
+                        className="w-full"
+                        aria-invalid={!!form.formState.errors.categoryId}
+                      >
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {categories.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                <FieldError>
+                  {form.formState.errors.categoryId?.message}
+                </FieldError>
+              </Field>
             </div>
-          </div>
-          <div className="flex gap-4">
-            <label className="flex cursor-pointer items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                {...form.register("available")}
-                className="accent-primary"
+
+            <Field>
+              <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+                Image URL (optional)
+              </FieldLabel>
+              <InputGroup>
+                <InputGroupInput
+                  {...form.register("image")}
+                  type="url"
+                  placeholder="https://…"
+                />
+              </InputGroup>
+            </Field>
+
+            <Field>
+              <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+                Dietary Tags
+              </FieldLabel>
+              <Controller
+                name="tags"
+                control={form.control}
+                render={({ field }) => (
+                  <ToggleGroup
+                    type="multiple"
+                    variant="outline"
+                    className="flex flex-wrap"
+                    value={field.value ?? []}
+                    onValueChange={(value) =>
+                      field.onChange(value as DietaryTag[])
+                    }
+                  >
+                    {TAGS.map((tag) => (
+                      <ToggleGroupItem key={tag} value={tag}>
+                        {TAG_LABELS[tag]}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                )}
               />
-              Available
-            </label>
-            <label className="flex cursor-pointer items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                {...form.register("featured")}
-                className="accent-primary"
-              />
-              Featured
-            </label>
-          </div>
+            </Field>
+
+            <FieldSet>
+              <FieldLegend variant="label">Visibility</FieldLegend>
+              <div className="flex gap-4">
+                <Controller
+                  name="available"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Field orientation="horizontal">
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                      <FieldLabel>Available</FieldLabel>
+                    </Field>
+                  )}
+                />
+                <Controller
+                  name="featured"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Field orientation="horizontal">
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                      <FieldLabel>Featured</FieldLabel>
+                    </Field>
+                  )}
+                />
+              </div>
+            </FieldSet>
+          </FieldGroup>
+
           <div className="flex gap-3 pt-2">
             <Button
               type="button"
@@ -278,25 +364,5 @@ function MenuItemDialog({
         </form>
       </DialogContent>
     </Dialog>
-  )
-}
-
-function F({
-  label,
-  error,
-  children,
-}: {
-  label: string
-  error?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <Label className="text-xs tracking-wide text-muted-foreground">
-        {label}
-      </Label>
-      {children}
-      {error && <p className="text-xs text-destructive">{error}</p>}
-    </div>
   )
 }

@@ -3,8 +3,23 @@
 import { useState, useTransition } from "react"
 import { Trash2, Plus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@workspace/ui/components/field"
+import {
+  InputGroup,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import {
   Dialog,
   DialogContent,
@@ -66,41 +81,50 @@ export function GalleryManager({ images }: { images: GalleryImage[] }) {
                 Add Image
               </DialogTitle>
             </DialogHeader>
-            <div className="flex flex-col gap-4 pt-2">
-              <div className="flex flex-col gap-1.5">
-                <Label className="text-xs text-muted-foreground">
+            <FieldGroup className="pt-2">
+              <Field>
+                <FieldLabel className="text-xs text-muted-foreground">
                   Image URL *
-                </Label>
-                <Input
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://…"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label className="text-xs text-muted-foreground">
+                </FieldLabel>
+                <InputGroup>
+                  <InputGroupInput
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="https://…"
+                  />
+                </InputGroup>
+              </Field>
+              <Field>
+                <FieldLabel className="text-xs text-muted-foreground">
                   Category
-                </Label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-input px-3 py-2 text-sm focus:ring-1 focus:ring-ring focus:outline-none"
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label className="text-xs text-muted-foreground">
+                </FieldLabel>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {CATEGORIES.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field>
+                <FieldLabel className="text-xs text-muted-foreground">
                   Title (optional)
-                </Label>
-                <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Dragon Roll"
-                />
-              </div>
+                </FieldLabel>
+                <InputGroup>
+                  <InputGroupInput
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Dragon Roll"
+                  />
+                </InputGroup>
+              </Field>
               <div className="flex gap-3">
                 <Button
                   variant="outline"
@@ -117,7 +141,7 @@ export function GalleryManager({ images }: { images: GalleryImage[] }) {
                   {isPending ? "Adding…" : "Add"}
                 </Button>
               </div>
-            </div>
+            </FieldGroup>
           </DialogContent>
         </Dialog>
       </div>

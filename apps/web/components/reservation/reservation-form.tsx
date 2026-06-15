@@ -1,19 +1,36 @@
 "use client"
 
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { motion, AnimatePresence } from "framer-motion"
-import { CheckCircle, CalendarDays, Clock, Users } from "lucide-react"
+import { motion } from "framer-motion"
+import { CheckCircle, Users } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@workspace/ui/components/field"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { Textarea } from "@workspace/ui/components/textarea"
-import { cn } from "@workspace/ui/lib/utils"
 import { ReservationSchema } from "@workspace/shared/schemas"
 import type { ReservationInput } from "@workspace/shared/schemas"
 import { RESERVATION_TIME_SLOTS } from "@workspace/shared/types"
 import { createReservation } from "@/lib/actions/reservation"
+import { DatePicker } from "@workspace/ui/components/date-picker"
 
 export function ReservationForm() {
   const [done, setDone] = useState(false)
@@ -41,8 +58,6 @@ export function ReservationForm() {
     }
     setDone(true)
   }
-
-  const today = new Date().toISOString().split("T")[0]
 
   if (done) {
     return (
@@ -87,85 +102,143 @@ export function ReservationForm() {
         </div>
       )}
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Full Name *" error={form.formState.errors.name?.message}>
-          <Input {...form.register("name")} placeholder="Your full name" />
-        </Field>
-        <Field label="Email *" error={form.formState.errors.email?.message}>
-          <Input
-            {...form.register("email")}
-            type="email"
-            placeholder="you@example.com"
-          />
-        </Field>
-        <Field
-          label="Phone *"
-          error={form.formState.errors.phone?.message}
-          className="sm:col-span-2"
-        >
-          <Input {...form.register("phone")} placeholder="+1 (212) 555-0198" />
-        </Field>
-      </div>
+      <FieldGroup>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field data-invalid={!!form.formState.errors.name}>
+            <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+              Full Name *
+            </FieldLabel>
+            <InputGroup>
+              <InputGroupInput
+                {...form.register("name")}
+                placeholder="Your full name"
+                aria-invalid={!!form.formState.errors.name}
+              />
+            </InputGroup>
+            <FieldError>{form.formState.errors.name?.message}</FieldError>
+          </Field>
 
-      <div className="grid gap-5 sm:grid-cols-3">
-        <Field label="Date *" error={form.formState.errors.date?.message}>
-          <div className="relative">
-            <CalendarDays className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              {...form.register("date")}
-              type="date"
-              min={today}
-              className="pl-9"
-            />
-          </div>
-        </Field>
+          <Field data-invalid={!!form.formState.errors.email}>
+            <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+              Email *
+            </FieldLabel>
+            <InputGroup>
+              <InputGroupInput
+                {...form.register("email")}
+                type="email"
+                placeholder="you@example.com"
+                aria-invalid={!!form.formState.errors.email}
+              />
+            </InputGroup>
+            <FieldError>{form.formState.errors.email?.message}</FieldError>
+          </Field>
 
-        <Field label="Time *" error={form.formState.errors.time?.message}>
-          <div className="relative">
-            <Clock className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <select
-              {...form.register("time")}
-              className={cn(
-                "flex h-10 w-full rounded-md border border-input bg-input px-9 py-2 text-sm",
-                "placeholder:text-muted-foreground focus:ring-1 focus:ring-ring focus:outline-none",
-                "appearance-none"
+          <Field
+            data-invalid={!!form.formState.errors.phone}
+            className="sm:col-span-2"
+          >
+            <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+              Phone *
+            </FieldLabel>
+            <InputGroup>
+              <InputGroupInput
+                {...form.register("phone")}
+                type="tel"
+                placeholder="+1 (212) 555-0198"
+                aria-invalid={!!form.formState.errors.phone}
+              />
+            </InputGroup>
+            <FieldError>{form.formState.errors.phone?.message}</FieldError>
+          </Field>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-3">
+          <Field data-invalid={!!form.formState.errors.date}>
+            <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+              Date *
+            </FieldLabel>
+            <Controller
+              name="date"
+              control={form.control}
+              render={({ field }) => (
+                <DatePicker
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select date"
+                  aria-invalid={!!form.formState.errors.date}
+                />
               )}
-            >
-              <option value="">Select time</option>
-              {RESERVATION_TIME_SLOTS.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-        </Field>
-
-        <Field label="Guests *" error={form.formState.errors.guests?.message}>
-          <div className="relative">
-            <Users className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              {...form.register("guests", { valueAsNumber: true })}
-              type="number"
-              min={1}
-              max={20}
-              placeholder="2"
-              className="pl-9"
             />
-          </div>
-        </Field>
-      </div>
+            <FieldError>{form.formState.errors.date?.message}</FieldError>
+          </Field>
 
-      <Field
-        label="Special Requests (optional)"
-        error={form.formState.errors.notes?.message}
-      >
-        <Textarea
-          {...form.register("notes")}
-          placeholder="Dietary requirements, special occasions, seating preferences…"
-          rows={4}
-        />
-      </Field>
+          <Field data-invalid={!!form.formState.errors.time}>
+            <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+              Time *
+            </FieldLabel>
+            <Controller
+              name="time"
+              control={form.control}
+              render={({ field }) => (
+                <Select
+                  value={field.value || undefined}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger
+                    className="w-full"
+                    aria-invalid={!!form.formState.errors.time}
+                  >
+                    <SelectValue placeholder="Select time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {RESERVATION_TIME_SLOTS.map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {t}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            <FieldError>{form.formState.errors.time?.message}</FieldError>
+          </Field>
+
+          <Field data-invalid={!!form.formState.errors.guests}>
+            <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+              Guests *
+            </FieldLabel>
+            <InputGroup>
+              <InputGroupAddon>
+                <Users />
+              </InputGroupAddon>
+              <InputGroupInput
+                {...form.register("guests", { valueAsNumber: true })}
+                type="number"
+                min={1}
+                max={20}
+                placeholder="2"
+                aria-invalid={!!form.formState.errors.guests}
+              />
+            </InputGroup>
+            <FieldError>{form.formState.errors.guests?.message}</FieldError>
+          </Field>
+        </div>
+
+        <Field data-invalid={!!form.formState.errors.notes}>
+          <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+            Special Requests (optional)
+          </FieldLabel>
+          <Textarea
+            {...form.register("notes")}
+            placeholder="Dietary requirements, special occasions, seating preferences…"
+            rows={4}
+            aria-invalid={!!form.formState.errors.notes}
+          />
+          <FieldError>{form.formState.errors.notes?.message}</FieldError>
+        </Field>
+      </FieldGroup>
 
       <Button
         type="submit"
@@ -180,27 +253,5 @@ export function ReservationForm() {
         Reservations are confirmed within 24 hours via email.
       </p>
     </form>
-  )
-}
-
-function Field({
-  label,
-  error,
-  children,
-  className,
-}: {
-  label: string
-  error?: string
-  children: React.ReactNode
-  className?: string
-}) {
-  return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
-      <Label className="text-xs tracking-wide text-muted-foreground">
-        {label}
-      </Label>
-      {children}
-      {error && <p className="text-xs text-destructive">{error}</p>}
-    </div>
   )
 }

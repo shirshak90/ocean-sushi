@@ -7,8 +7,18 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { signIn } from "next-auth/react"
 import { Eye, EyeOff } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@workspace/ui/components/field"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group"
 import { LoginSchema } from "@workspace/shared/schemas"
 import type { LoginInput } from "@workspace/shared/schemas"
 
@@ -42,7 +52,6 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
-        {/* Brand */}
         <div className="mb-10 text-center">
           <p className="font-heading text-3xl font-light tracking-widest text-primary">
             海 OCEAN
@@ -65,54 +74,49 @@ export default function LoginPage() {
             onSubmit={form.handleSubmit(onSubmit)}
             className="flex flex-col gap-4"
           >
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-xs tracking-wide text-muted-foreground">
-                Email
-              </Label>
-              <Input
-                {...form.register("email")}
-                type="email"
-                placeholder="admin@oceansushi.com"
-                autoComplete="email"
-              />
-              {form.formState.errors.email && (
-                <p className="text-xs text-destructive">
-                  {form.formState.errors.email.message}
-                </p>
-              )}
-            </div>
+            <FieldGroup>
+              <Field data-invalid={!!form.formState.errors.email}>
+                <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+                  Email
+                </FieldLabel>
+                <InputGroup>
+                  <InputGroupInput
+                    {...form.register("email")}
+                    type="email"
+                    placeholder="admin@oceansushi.com"
+                    autoComplete="email"
+                    aria-invalid={!!form.formState.errors.email}
+                  />
+                </InputGroup>
+                <FieldError>{form.formState.errors.email?.message}</FieldError>
+              </Field>
 
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-xs tracking-wide text-muted-foreground">
-                Password
-              </Label>
-              <div className="relative">
-                <Input
-                  {...form.register("password")}
-                  type={showPw ? "text" : "password"}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPw((v) => !v)}
-                  className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  aria-label={showPw ? "Hide password" : "Show password"}
-                >
-                  {showPw ? (
-                    <EyeOff className="size-4" />
-                  ) : (
-                    <Eye className="size-4" />
-                  )}
-                </button>
-              </div>
-              {form.formState.errors.password && (
-                <p className="text-xs text-destructive">
-                  {form.formState.errors.password.message}
-                </p>
-              )}
-            </div>
+              <Field data-invalid={!!form.formState.errors.password}>
+                <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+                  Password
+                </FieldLabel>
+                <InputGroup>
+                  <InputGroupInput
+                    {...form.register("password")}
+                    type={showPw ? "text" : "password"}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    aria-invalid={!!form.formState.errors.password}
+                  />
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupButton
+                      onClick={() => setShowPw((v) => !v)}
+                      aria-label={showPw ? "Hide password" : "Show password"}
+                    >
+                      {showPw ? <EyeOff /> : <Eye />}
+                    </InputGroupButton>
+                  </InputGroupAddon>
+                </InputGroup>
+                <FieldError>
+                  {form.formState.errors.password?.message}
+                </FieldError>
+              </Field>
+            </FieldGroup>
 
             <Button
               type="submit"

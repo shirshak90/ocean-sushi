@@ -6,10 +6,17 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { motion } from "framer-motion"
 import { CheckCircle } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@workspace/ui/components/field"
+import {
+  InputGroup,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group"
 import { Textarea } from "@workspace/ui/components/textarea"
-import { cn } from "@workspace/ui/lib/utils"
 import { ContactSchema } from "@workspace/shared/schemas"
 import type { ContactInput } from "@workspace/shared/schemas"
 import { sendContactMessage } from "@/lib/actions/contact"
@@ -73,25 +80,49 @@ export function ContactForm() {
         </div>
       )}
 
-      <Field label="Name *" error={form.formState.errors.name?.message}>
-        <Input {...form.register("name")} placeholder="Your full name" />
-      </Field>
+      <FieldGroup>
+        <Field data-invalid={!!form.formState.errors.name}>
+          <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+            Name *
+          </FieldLabel>
+          <InputGroup>
+            <InputGroupInput
+              {...form.register("name")}
+              placeholder="Your full name"
+              aria-invalid={!!form.formState.errors.name}
+            />
+          </InputGroup>
+          <FieldError>{form.formState.errors.name?.message}</FieldError>
+        </Field>
 
-      <Field label="Email *" error={form.formState.errors.email?.message}>
-        <Input
-          {...form.register("email")}
-          type="email"
-          placeholder="you@example.com"
-        />
-      </Field>
+        <Field data-invalid={!!form.formState.errors.email}>
+          <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+            Email *
+          </FieldLabel>
+          <InputGroup>
+            <InputGroupInput
+              {...form.register("email")}
+              type="email"
+              placeholder="you@example.com"
+              aria-invalid={!!form.formState.errors.email}
+            />
+          </InputGroup>
+          <FieldError>{form.formState.errors.email?.message}</FieldError>
+        </Field>
 
-      <Field label="Message *" error={form.formState.errors.message?.message}>
-        <Textarea
-          {...form.register("message")}
-          placeholder="How can we help you?"
-          rows={5}
-        />
-      </Field>
+        <Field data-invalid={!!form.formState.errors.message}>
+          <FieldLabel className="text-xs tracking-wide text-muted-foreground">
+            Message *
+          </FieldLabel>
+          <Textarea
+            {...form.register("message")}
+            placeholder="How can we help you?"
+            rows={5}
+            aria-invalid={!!form.formState.errors.message}
+          />
+          <FieldError>{form.formState.errors.message?.message}</FieldError>
+        </Field>
+      </FieldGroup>
 
       <Button
         type="submit"
@@ -102,27 +133,5 @@ export function ContactForm() {
         {form.formState.isSubmitting ? "Sending…" : "Send Message"}
       </Button>
     </form>
-  )
-}
-
-function Field({
-  label,
-  error,
-  children,
-  className,
-}: {
-  label: string
-  error?: string
-  children: React.ReactNode
-  className?: string
-}) {
-  return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
-      <Label className="text-xs tracking-wide text-muted-foreground">
-        {label}
-      </Label>
-      {children}
-      {error && <p className="text-xs text-destructive">{error}</p>}
-    </div>
   )
 }

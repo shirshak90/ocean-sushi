@@ -1,6 +1,12 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
+import { Clock } from "lucide-react"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group"
 import { Switch } from "@workspace/ui/components/switch"
 import type { DayOfWeek } from "@workspace/shared/types"
 import { upsertOpeningHour } from "@/lib/actions/opening-hours"
@@ -66,21 +72,29 @@ export function OpeningHourEditor({ day, label, current }: Props) {
 
       {!isClosed ? (
         <div className="flex flex-1 items-center gap-2">
-          <input
-            type="time"
-            value={openTime}
-            onChange={(e) => setOpenTime(e.target.value)}
-            onBlur={() => scheduleSave()}
-            className="rounded border border-border bg-input px-2 py-1 text-sm focus:ring-1 focus:ring-ring focus:outline-none"
-          />
+          <InputGroup className="w-32">
+            <InputGroupAddon>
+              <Clock />
+            </InputGroupAddon>
+            <InputGroupInput
+              type="time"
+              value={openTime}
+              onChange={(e) => setOpenTime(e.target.value)}
+              onBlur={() => scheduleSave()}
+            />
+          </InputGroup>
           <span className="text-muted-foreground">–</span>
-          <input
-            type="time"
-            value={closeTime}
-            onChange={(e) => setCloseTime(e.target.value)}
-            onBlur={() => scheduleSave()}
-            className="rounded border border-border bg-input px-2 py-1 text-sm focus:ring-1 focus:ring-ring focus:outline-none"
-          />
+          <InputGroup className="w-32">
+            <InputGroupAddon>
+              <Clock />
+            </InputGroupAddon>
+            <InputGroupInput
+              type="time"
+              value={closeTime}
+              onChange={(e) => setCloseTime(e.target.value)}
+              onBlur={() => scheduleSave()}
+            />
+          </InputGroup>
         </div>
       ) : (
         <span className="flex-1 text-sm text-muted-foreground">Closed</span>
