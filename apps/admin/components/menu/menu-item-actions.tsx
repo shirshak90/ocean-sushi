@@ -39,6 +39,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { MenuItemSchema } from "@workspace/shared/schemas"
 import type { MenuItemInput } from "@workspace/shared/schemas"
+import { zodFormOptions } from "@workspace/shared/forms"
 import type { DietaryTag } from "@workspace/shared/types"
 import {
   createMenuItem,
@@ -147,6 +148,7 @@ function MenuItemDialog({
   const [isPending, startTransition] = useTransition()
 
   const form = useForm<MenuItemInput>({
+    ...zodFormOptions,
     resolver: zodResolver(MenuItemSchema),
     defaultValues: item
       ? {
@@ -170,6 +172,8 @@ function MenuItemDialog({
         },
   })
 
+  const { errors, isSubmitting } = form.formState
+
   function onSubmit(data: MenuItemInput) {
     startTransition(async () => {
       if (mode === "create") await createMenuItem(data)
@@ -188,11 +192,12 @@ function MenuItemDialog({
           </DialogTitle>
         </DialogHeader>
         <form
+          noValidate
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex flex-col gap-4 pt-2"
         >
           <FieldGroup>
-            <Field data-invalid={!!form.formState.errors.name}>
+            <Field data-invalid={!!errors.name}>
               <FieldLabel className="text-xs tracking-wide text-muted-foreground">
                 Name *
               </FieldLabel>
@@ -200,13 +205,13 @@ function MenuItemDialog({
                 <InputGroupInput
                   {...form.register("name")}
                   placeholder="Dragon Roll"
-                  aria-invalid={!!form.formState.errors.name}
+                  aria-invalid={!!errors.name}
                 />
               </InputGroup>
-              <FieldError>{form.formState.errors.name?.message}</FieldError>
+              <FieldError>{errors.name?.message}</FieldError>
             </Field>
 
-            <Field data-invalid={!!form.formState.errors.description}>
+            <Field data-invalid={!!errors.description}>
               <FieldLabel className="text-xs tracking-wide text-muted-foreground">
                 Description *
               </FieldLabel>
@@ -214,15 +219,15 @@ function MenuItemDialog({
                 {...form.register("description")}
                 rows={2}
                 placeholder="Fresh ingredients…"
-                aria-invalid={!!form.formState.errors.description}
+                aria-invalid={!!errors.description}
               />
               <FieldError>
-                {form.formState.errors.description?.message}
+                {errors.description?.message}
               </FieldError>
             </Field>
 
             <div className="grid grid-cols-2 gap-4">
-              <Field data-invalid={!!form.formState.errors.price}>
+              <Field data-invalid={!!errors.price}>
                 <FieldLabel className="text-xs tracking-wide text-muted-foreground">
                   Price *
                 </FieldLabel>
@@ -233,13 +238,13 @@ function MenuItemDialog({
                     step="0.01"
                     min="0"
                     placeholder="12.00"
-                    aria-invalid={!!form.formState.errors.price}
+                    aria-invalid={!!errors.price}
                   />
                 </InputGroup>
-                <FieldError>{form.formState.errors.price?.message}</FieldError>
+                <FieldError>{errors.price?.message}</FieldError>
               </Field>
 
-              <Field data-invalid={!!form.formState.errors.categoryId}>
+              <Field data-invalid={!!errors.categoryId}>
                 <FieldLabel className="text-xs tracking-wide text-muted-foreground">
                   Category *
                 </FieldLabel>
@@ -253,7 +258,7 @@ function MenuItemDialog({
                     >
                       <SelectTrigger
                         className="w-full"
-                        aria-invalid={!!form.formState.errors.categoryId}
+                        aria-invalid={!!errors.categoryId}
                       >
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
@@ -270,7 +275,7 @@ function MenuItemDialog({
                   )}
                 />
                 <FieldError>
-                  {form.formState.errors.categoryId?.message}
+                  {errors.categoryId?.message}
                 </FieldError>
               </Field>
             </div>
@@ -325,7 +330,9 @@ function MenuItemDialog({
                     <Field orientation="horizontal">
                       <Checkbox
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked === true)
+                        }
                       />
                       <FieldLabel>Available</FieldLabel>
                     </Field>
@@ -338,7 +345,9 @@ function MenuItemDialog({
                     <Field orientation="horizontal">
                       <Checkbox
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked === true)
+                        }
                       />
                       <FieldLabel>Featured</FieldLabel>
                     </Field>
@@ -357,7 +366,7 @@ function MenuItemDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1" disabled={isPending}>
+            <Button type="submit" className="flex-1" disabled={isPending || isSubmitting}>
               {isPending ? "Saving…" : "Save"}
             </Button>
           </div>

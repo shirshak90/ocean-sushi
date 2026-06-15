@@ -19,6 +19,7 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea"
 import { ContactSchema } from "@workspace/shared/schemas"
 import type { ContactInput } from "@workspace/shared/schemas"
+import { zodFormOptions } from "@workspace/shared/forms"
 import { sendContactMessage } from "@/lib/actions/contact"
 
 export function ContactForm() {
@@ -26,9 +27,12 @@ export function ContactForm() {
   const [serverError, setServerError] = useState<string | null>(null)
 
   const form = useForm<ContactInput>({
+    ...zodFormOptions,
     resolver: zodResolver(ContactSchema),
     defaultValues: { name: "", email: "", message: "" },
   })
+
+  const { errors, isSubmitting } = form.formState
 
   async function onSubmit(data: ContactInput) {
     setServerError(null)
@@ -71,6 +75,7 @@ export function ContactForm() {
 
   return (
     <form
+      noValidate
       onSubmit={form.handleSubmit(onSubmit)}
       className="flex flex-col gap-5 rounded-lg border border-border bg-card p-8"
     >
@@ -81,7 +86,7 @@ export function ContactForm() {
       )}
 
       <FieldGroup>
-        <Field data-invalid={!!form.formState.errors.name}>
+        <Field data-invalid={!!errors.name}>
           <FieldLabel className="text-xs tracking-wide text-muted-foreground">
             Name *
           </FieldLabel>
@@ -89,13 +94,13 @@ export function ContactForm() {
             <InputGroupInput
               {...form.register("name")}
               placeholder="Your full name"
-              aria-invalid={!!form.formState.errors.name}
+              aria-invalid={!!errors.name}
             />
           </InputGroup>
-          <FieldError>{form.formState.errors.name?.message}</FieldError>
+          <FieldError>{errors.name?.message}</FieldError>
         </Field>
 
-        <Field data-invalid={!!form.formState.errors.email}>
+        <Field data-invalid={!!errors.email}>
           <FieldLabel className="text-xs tracking-wide text-muted-foreground">
             Email *
           </FieldLabel>
@@ -104,13 +109,13 @@ export function ContactForm() {
               {...form.register("email")}
               type="email"
               placeholder="you@example.com"
-              aria-invalid={!!form.formState.errors.email}
+              aria-invalid={!!errors.email}
             />
           </InputGroup>
-          <FieldError>{form.formState.errors.email?.message}</FieldError>
+          <FieldError>{errors.email?.message}</FieldError>
         </Field>
 
-        <Field data-invalid={!!form.formState.errors.message}>
+        <Field data-invalid={!!errors.message}>
           <FieldLabel className="text-xs tracking-wide text-muted-foreground">
             Message *
           </FieldLabel>
@@ -118,19 +123,19 @@ export function ContactForm() {
             {...form.register("message")}
             placeholder="How can we help you?"
             rows={5}
-            aria-invalid={!!form.formState.errors.message}
+            aria-invalid={!!errors.message}
           />
-          <FieldError>{form.formState.errors.message?.message}</FieldError>
+          <FieldError>{errors.message?.message}</FieldError>
         </Field>
       </FieldGroup>
 
       <Button
         type="submit"
         size="lg"
-        disabled={form.formState.isSubmitting}
+        disabled={isSubmitting}
         className="w-full tracking-widest"
       >
-        {form.formState.isSubmitting ? "Sending…" : "Send Message"}
+        {isSubmitting ? "Sending…" : "Send Message"}
       </Button>
     </form>
   )

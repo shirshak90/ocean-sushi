@@ -16,6 +16,7 @@
   "exports": {
     "./types": "./src/types/index.ts",
     "./schemas": "./src/schemas/index.ts",
-    "./utils": "./src/utils/index.ts"
+    "./utils": "./src/utils/index.ts",
+    "./forms": "./src/forms/index.ts"
   }
 }

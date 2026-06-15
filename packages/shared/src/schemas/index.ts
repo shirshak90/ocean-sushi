@@ -23,14 +23,29 @@ export const OrderItemSchema = z.object({
   notes: z.string().optional(),
 })
 
-export const CreateOrderSchema = z.object({
-  customer: CustomerSchema,
-  address: AddressSchema.optional(),
-  items: z.array(OrderItemSchema).min(1, "Cart is empty"),
-  fulfillmentType: z.enum(["DELIVERY", "PICKUP"]),
-  notes: z.string().optional(),
-  preferredTime: z.string().optional(),
-})
+export const CreateOrderSchema = z
+  .object({
+    customer: CustomerSchema,
+    address: AddressSchema.optional(),
+    items: z.array(OrderItemSchema).min(1, "Cart is empty"),
+    fulfillmentType: z.enum(["DELIVERY", "PICKUP"]),
+    notes: z.string().optional(),
+    preferredTime: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.fulfillmentType !== "DELIVERY") return
+
+    const result = AddressSchema.safeParse(data.address ?? {})
+    if (result.success) return
+
+    for (const issue of result.error.issues) {
+      ctx.addIssue({
+        code: "custom",
+        message: issue.message,
+        path: ["address", ...issue.path],
+      })
+    }
+  })
 
 export const ReservationSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -38,7 +53,7 @@ export const ReservationSchema = z.object({
   phone: z.string().min(6, "Phone number is required"),
   date: z.string().min(1, "Please select a date"),
   time: z.string().min(1, "Please select a time"),
-  guests: z.coerce
+  guests: z
     .number()
     .int()
     .min(1, "At least 1 guest required")
@@ -60,14 +75,12 @@ export const LoginSchema = z.object({
 export const MenuItemSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().min(1, "Description is required"),
-  price: z.coerce.number().positive("Price must be positive"),
+  price: z.number().positive("Price must be positive"),
   categoryId: z.string().min(1, "Category is required"),
   image: z.string().optional(),
-  available: z.boolean().default(true),
-  featured: z.boolean().default(false),
-  tags: z
-    .array(z.enum(["VEGETARIAN", "VEGAN", "GLUTEN_FREE", "SPICY"]))
-    .default([]),
+  available: z.boolean(),
+  featured: z.boolean(),
+  tags: z.array(z.enum(["VEGETARIAN", "VEGAN", "GLUTEN_FREE", "SPICY"])),
 })
 
 export const UpdateOrderStatusSchema = z.object({
@@ -103,6 +116,12 @@ export const OpeningHourSchema = z.object({
   isClosed: z.boolean().default(false),
 })
 
+export const GalleryImageSchema = z.object({
+  url: z.string().min(1, "Image URL is required").url("Please enter a valid URL"),
+  category: z.string().min(1, "Category is required"),
+  title: z.string().optional(),
+})
+
 export type AddressInput = z.infer<typeof AddressSchema>
 export type CustomerInput = z.infer<typeof CustomerSchema>
 export type CreateOrderInput = z.infer<typeof CreateOrderSchema>
@@ -115,3 +134,4 @@ export type UpdateReservationStatusInput = z.infer<
   typeof UpdateReservationStatusSchema
 >
 export type OpeningHourInput = z.infer<typeof OpeningHourSchema>
+export type GalleryImageInput = z.infer<typeof GalleryImageSchema>

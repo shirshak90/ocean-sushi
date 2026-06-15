@@ -21,6 +21,7 @@ import { Separator } from "@workspace/ui/components/separator"
 import { cn } from "@workspace/ui/lib/utils"
 import { CreateOrderSchema } from "@workspace/shared/schemas"
 import type { CreateOrderInput } from "@workspace/shared/schemas"
+import { zodFormOptions } from "@workspace/shared/forms"
 import { formatPrice } from "@workspace/shared/utils"
 import { DIETARY_TAG_CONFIG, DELIVERY_FEE } from "@workspace/shared/types"
 import type { DietaryTag } from "@workspace/shared/types"
@@ -61,6 +62,7 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
   const total = sub + delivery
 
   const form = useForm<CreateOrderInput>({
+    ...zodFormOptions,
     resolver: zodResolver(CreateOrderSchema),
     defaultValues: {
       fulfillmentType: "PICKUP",
@@ -83,22 +85,26 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
     },
   })
 
-  async function onSubmit(data: CreateOrderInput) {
-    if (cartItems.length === 0) return
-    setLoading(true)
-    setServerError(null)
+  const { errors } = form.formState
 
-    const payload: CreateOrderInput = {
-      ...data,
-      fulfillmentType,
-      items: cartItems.map((i) => ({
+  function handleCheckoutSubmit(e: React.FormEvent<HTMLFormElement>) {
+    form.setValue(
+      "items",
+      cartItems.map((i) => ({
         menuItemId: i.id,
         quantity: i.quantity,
         notes: i.notes,
-      })),
-    }
+      }))
+    )
+    form.setValue("fulfillmentType", fulfillmentType)
+    void form.handleSubmit(onSubmit)(e)
+  }
 
-    const result = await createOrder(payload)
+  async function onSubmit(data: CreateOrderInput) {
+    setLoading(true)
+    setServerError(null)
+
+    const result = await createOrder(data)
     setLoading(false)
 
     if (!result.success) {
@@ -242,12 +248,19 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
           ) : (
             /* CHECKOUT FORM */
             <form
-              onSubmit={form.handleSubmit(onSubmit)}
+              noValidate
+              onSubmit={handleCheckoutSubmit}
               className="flex flex-col gap-8"
             >
               {serverError && (
                 <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
                   {serverError}
+                </div>
+              )}
+
+              {errors.items?.message && (
+                <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+                  {errors.items.message}
                 </div>
               )}
 
@@ -298,53 +311,53 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field
                     label="First Name *"
-                    error={form.formState.errors.customer?.firstName?.message}
+                    error={errors.customer?.firstName?.message}
                   >
                     <InputGroup>
                       <InputGroupInput
                         {...form.register("customer.firstName")}
                         placeholder="Kenji"
                         aria-invalid={
-                          !!form.formState.errors.customer?.firstName
+                          !!errors.customer?.firstName
                         }
                       />
                     </InputGroup>
                   </Field>
                   <Field
                     label="Last Name *"
-                    error={form.formState.errors.customer?.lastName?.message}
+                    error={errors.customer?.lastName?.message}
                   >
                     <InputGroup>
                       <InputGroupInput
                         {...form.register("customer.lastName")}
                         placeholder="Tanaka"
-                        aria-invalid={!!form.formState.errors.customer?.lastName}
+                        aria-invalid={!!errors.customer?.lastName}
                       />
                     </InputGroup>
                   </Field>
                   <Field
                     label="Email *"
-                    error={form.formState.errors.customer?.email?.message}
+                    error={errors.customer?.email?.message}
                   >
                     <InputGroup>
                       <InputGroupInput
                         {...form.register("customer.email")}
                         type="email"
                         placeholder="you@example.com"
-                        aria-invalid={!!form.formState.errors.customer?.email}
+                        aria-invalid={!!errors.customer?.email}
                       />
                     </InputGroup>
                   </Field>
                   <Field
                     label="Phone *"
-                    error={form.formState.errors.customer?.phone?.message}
+                    error={errors.customer?.phone?.message}
                   >
                     <InputGroup>
                       <InputGroupInput
                         {...form.register("customer.phone")}
                         type="tel"
                         placeholder="+1 (212) 555-0198"
-                        aria-invalid={!!form.formState.errors.customer?.phone}
+                        aria-invalid={!!errors.customer?.phone}
                       />
                     </InputGroup>
                   </Field>
@@ -377,26 +390,26 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                     <div className="grid gap-4 sm:grid-cols-2">
                       <Field
                         label="Street *"
-                        error={form.formState.errors.address?.street?.message}
+                        error={errors.address?.street?.message}
                         className="sm:col-span-2"
                       >
                         <InputGroup>
                           <InputGroupInput
                             {...form.register("address.street")}
                             placeholder="Sakura Street"
-                            aria-invalid={!!form.formState.errors.address?.street}
+                            aria-invalid={!!errors.address?.street}
                           />
                         </InputGroup>
                       </Field>
                       <Field
                         label="Number *"
-                        error={form.formState.errors.address?.number?.message}
+                        error={errors.address?.number?.message}
                       >
                         <InputGroup>
                           <InputGroupInput
                             {...form.register("address.number")}
                             placeholder="123"
-                            aria-invalid={!!form.formState.errors.address?.number}
+                            aria-invalid={!!errors.address?.number}
                           />
                         </InputGroup>
                       </Field>
@@ -411,7 +424,7 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                       <Field
                         label="Postal Code *"
                         error={
-                          form.formState.errors.address?.postalCode?.message
+                          errors.address?.postalCode?.message
                         }
                       >
                         <InputGroup>
@@ -419,26 +432,26 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                             {...form.register("address.postalCode")}
                             placeholder="10001"
                             aria-invalid={
-                              !!form.formState.errors.address?.postalCode
+                              !!errors.address?.postalCode
                             }
                           />
                         </InputGroup>
                       </Field>
                       <Field
                         label="City *"
-                        error={form.formState.errors.address?.city?.message}
+                        error={errors.address?.city?.message}
                       >
                         <InputGroup>
                           <InputGroupInput
                             {...form.register("address.city")}
                             placeholder="New York"
-                            aria-invalid={!!form.formState.errors.address?.city}
+                            aria-invalid={!!errors.address?.city}
                           />
                         </InputGroup>
                       </Field>
                       <Field
                         label="Country *"
-                        error={form.formState.errors.address?.country?.message}
+                        error={errors.address?.country?.message}
                         className="sm:col-span-2"
                       >
                         <InputGroup>
@@ -446,7 +459,7 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                             {...form.register("address.country")}
                             placeholder="United States"
                             aria-invalid={
-                              !!form.formState.errors.address?.country
+                              !!errors.address?.country
                             }
                           />
                         </InputGroup>

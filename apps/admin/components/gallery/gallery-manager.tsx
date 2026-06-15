@@ -1,10 +1,13 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useForm, Controller } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Trash2, Plus } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {
   Field,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@workspace/ui/components/field"
@@ -27,6 +30,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@workspace/ui/components/dialog"
+import { GalleryImageSchema } from "@workspace/shared/schemas"
+import type { GalleryImageInput } from "@workspace/shared/schemas"
+import { zodFormOptions } from "@workspace/shared/forms"
 import {
   addGalleryImage,
   deleteGalleryImage,
@@ -39,21 +45,32 @@ interface GalleryImage {
   title: string | null
 }
 
-const CATEGORIES = ["Food", "Restaurant", "Drinks", "Team"]
+const CATEGORIES = ["Food", "Restaurant", "Drinks", "Team"] as const
 
 export function GalleryManager({ images }: { images: GalleryImage[] }) {
   const [open, setOpen] = useState(false)
-  const [url, setUrl] = useState("")
-  const [category, setCategory] = useState("Food")
-  const [title, setTitle] = useState("")
   const [isPending, startTransition] = useTransition()
 
-  function onAdd() {
-    if (!url) return
+  const form = useForm<GalleryImageInput>({
+    ...zodFormOptions,
+    resolver: zodResolver(GalleryImageSchema),
+    defaultValues: {
+      url: "",
+      category: "Food",
+      title: "",
+    },
+  })
+
+  const { errors, isSubmitting } = form.formState
+
+  function onSubmit(data: GalleryImageInput) {
     startTransition(async () => {
-      await addGalleryImage({ url, category, title })
-      setUrl("")
-      setTitle("")
+      await addGalleryImage({
+        url: data.url,
+        category: data.category,
+        title: data.title ?? "",
+      })
+      form.reset()
       setOpen(false)
     })
   }
@@ -63,12 +80,18 @@ export function GalleryManager({ images }: { images: GalleryImage[] }) {
     items: images.filter((i) => i.category === cat),
   })).filter((g) => g.items.length > 0)
 
-  const uncategorised = images.filter((i) => !CATEGORIES.includes(i.category))
+  const uncategorised = images.filter((i) => !CATEGORIES.includes(i.category as (typeof CATEGORIES)[number]))
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex justify-end">
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog
+          open={open}
+          onOpenChange={(next) => {
+            setOpen(next)
+            if (!next) form.reset()
+          }}
+        >
           <DialogTrigger asChild>
             <Button size="sm" className="gap-2">
               <Plus className="size-4" />
@@ -81,67 +104,88 @@ export function GalleryManager({ images }: { images: GalleryImage[] }) {
                 Add Image
               </DialogTitle>
             </DialogHeader>
-            <FieldGroup className="pt-2">
-              <Field>
-                <FieldLabel className="text-xs text-muted-foreground">
-                  Image URL *
-                </FieldLabel>
-                <InputGroup>
-                  <InputGroupInput
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    placeholder="https://…"
+            <form
+              noValidate
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="pt-2"
+            >
+              <FieldGroup>
+                <Field data-invalid={!!errors.url}>
+                  <FieldLabel className="text-xs text-muted-foreground">
+                    Image URL *
+                  </FieldLabel>
+                  <InputGroup>
+                    <InputGroupInput
+                      {...form.register("url")}
+                      type="url"
+                      placeholder="https://…"
+                      aria-invalid={!!errors.url}
+                    />
+                  </InputGroup>
+                  <FieldError>{errors.url?.message}</FieldError>
+                </Field>
+                <Field data-invalid={!!errors.category}>
+                  <FieldLabel className="text-xs text-muted-foreground">
+                    Category
+                  </FieldLabel>
+                  <Controller
+                    name="category"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger
+                          className="w-full"
+                          aria-invalid={!!errors.category}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {CATEGORIES.map((c) => (
+                              <SelectItem key={c} value={c}>
+                                {c}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    )}
                   />
-                </InputGroup>
-              </Field>
-              <Field>
-                <FieldLabel className="text-xs text-muted-foreground">
-                  Category
-                </FieldLabel>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {CATEGORIES.map((c) => (
-                        <SelectItem key={c} value={c}>
-                          {c}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field>
-                <FieldLabel className="text-xs text-muted-foreground">
-                  Title (optional)
-                </FieldLabel>
-                <InputGroup>
-                  <InputGroupInput
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Dragon Roll"
-                  />
-                </InputGroup>
-              </Field>
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="flex-1"
-                  onClick={onAdd}
-                  disabled={isPending || !url}
-                >
-                  {isPending ? "Adding…" : "Add"}
-                </Button>
-              </div>
-            </FieldGroup>
+                  <FieldError>{errors.category?.message}</FieldError>
+                </Field>
+                <Field>
+                  <FieldLabel className="text-xs text-muted-foreground">
+                    Title (optional)
+                  </FieldLabel>
+                  <InputGroup>
+                    <InputGroupInput
+                      {...form.register("title")}
+                      placeholder="Dragon Roll"
+                    />
+                  </InputGroup>
+                </Field>
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="flex-1"
+                    disabled={isPending || isSubmitting}
+                  >
+                    {isPending ? "Adding…" : "Add"}
+                  </Button>
+                </div>
+              </FieldGroup>
+            </form>
           </DialogContent>
         </Dialog>
       </div>

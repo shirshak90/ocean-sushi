@@ -21,6 +21,7 @@ import {
 } from "@workspace/ui/components/input-group"
 import { LoginSchema } from "@workspace/shared/schemas"
 import type { LoginInput } from "@workspace/shared/schemas"
+import { zodFormOptions } from "@workspace/shared/forms"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -28,9 +29,12 @@ export default function LoginPage() {
   const [serverError, setServerError] = useState<string | null>(null)
 
   const form = useForm<LoginInput>({
+    ...zodFormOptions,
     resolver: zodResolver(LoginSchema),
     defaultValues: { email: "", password: "" },
   })
+
+  const { errors, isSubmitting } = form.formState
 
   async function onSubmit(data: LoginInput) {
     setServerError(null)
@@ -71,11 +75,12 @@ export default function LoginPage() {
           )}
 
           <form
+            noValidate
             onSubmit={form.handleSubmit(onSubmit)}
             className="flex flex-col gap-4"
           >
             <FieldGroup>
-              <Field data-invalid={!!form.formState.errors.email}>
+              <Field data-invalid={!!errors.email}>
                 <FieldLabel className="text-xs tracking-wide text-muted-foreground">
                   Email
                 </FieldLabel>
@@ -85,13 +90,13 @@ export default function LoginPage() {
                     type="email"
                     placeholder="admin@oceansushi.com"
                     autoComplete="email"
-                    aria-invalid={!!form.formState.errors.email}
+                    aria-invalid={!!errors.email}
                   />
                 </InputGroup>
-                <FieldError>{form.formState.errors.email?.message}</FieldError>
+                <FieldError>{errors.email?.message}</FieldError>
               </Field>
 
-              <Field data-invalid={!!form.formState.errors.password}>
+              <Field data-invalid={!!errors.password}>
                 <FieldLabel className="text-xs tracking-wide text-muted-foreground">
                   Password
                 </FieldLabel>
@@ -101,7 +106,7 @@ export default function LoginPage() {
                     type={showPw ? "text" : "password"}
                     placeholder="••••••••"
                     autoComplete="current-password"
-                    aria-invalid={!!form.formState.errors.password}
+                    aria-invalid={!!errors.password}
                   />
                   <InputGroupAddon align="inline-end">
                     <InputGroupButton
@@ -112,18 +117,16 @@ export default function LoginPage() {
                     </InputGroupButton>
                   </InputGroupAddon>
                 </InputGroup>
-                <FieldError>
-                  {form.formState.errors.password?.message}
-                </FieldError>
+                <FieldError>{errors.password?.message}</FieldError>
               </Field>
             </FieldGroup>
 
             <Button
               type="submit"
               className="mt-2 w-full tracking-widest"
-              disabled={form.formState.isSubmitting}
+              disabled={isSubmitting}
             >
-              {form.formState.isSubmitting ? "Signing in…" : "Sign In"}
+              {isSubmitting ? "Signing in…" : "Sign In"}
             </Button>
           </form>
         </div>

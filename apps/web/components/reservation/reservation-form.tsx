@@ -28,6 +28,7 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea"
 import { ReservationSchema } from "@workspace/shared/schemas"
 import type { ReservationInput } from "@workspace/shared/schemas"
+import { zodFormOptions } from "@workspace/shared/forms"
 import { RESERVATION_TIME_SLOTS } from "@workspace/shared/types"
 import { createReservation } from "@/lib/actions/reservation"
 import { DatePicker } from "@workspace/ui/components/date-picker"
@@ -37,6 +38,7 @@ export function ReservationForm() {
   const [serverError, setServerError] = useState<string | null>(null)
 
   const form = useForm<ReservationInput>({
+    ...zodFormOptions,
     resolver: zodResolver(ReservationSchema),
     defaultValues: {
       name: "",
@@ -48,6 +50,8 @@ export function ReservationForm() {
       notes: "",
     },
   })
+
+  const { errors, isSubmitting } = form.formState
 
   async function onSubmit(data: ReservationInput) {
     setServerError(null)
@@ -93,6 +97,7 @@ export function ReservationForm() {
 
   return (
     <form
+      noValidate
       onSubmit={form.handleSubmit(onSubmit)}
       className="flex flex-col gap-6 rounded-lg border border-border bg-card p-8"
     >
@@ -104,7 +109,7 @@ export function ReservationForm() {
 
       <FieldGroup>
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field data-invalid={!!form.formState.errors.name}>
+          <Field data-invalid={!!errors.name}>
             <FieldLabel className="text-xs tracking-wide text-muted-foreground">
               Full Name *
             </FieldLabel>
@@ -112,13 +117,13 @@ export function ReservationForm() {
               <InputGroupInput
                 {...form.register("name")}
                 placeholder="Your full name"
-                aria-invalid={!!form.formState.errors.name}
+                aria-invalid={!!errors.name}
               />
             </InputGroup>
-            <FieldError>{form.formState.errors.name?.message}</FieldError>
+            <FieldError>{errors.name?.message}</FieldError>
           </Field>
 
-          <Field data-invalid={!!form.formState.errors.email}>
+          <Field data-invalid={!!errors.email}>
             <FieldLabel className="text-xs tracking-wide text-muted-foreground">
               Email *
             </FieldLabel>
@@ -127,16 +132,13 @@ export function ReservationForm() {
                 {...form.register("email")}
                 type="email"
                 placeholder="you@example.com"
-                aria-invalid={!!form.formState.errors.email}
+                aria-invalid={!!errors.email}
               />
             </InputGroup>
-            <FieldError>{form.formState.errors.email?.message}</FieldError>
+            <FieldError>{errors.email?.message}</FieldError>
           </Field>
 
-          <Field
-            data-invalid={!!form.formState.errors.phone}
-            className="sm:col-span-2"
-          >
+          <Field data-invalid={!!errors.phone} className="sm:col-span-2">
             <FieldLabel className="text-xs tracking-wide text-muted-foreground">
               Phone *
             </FieldLabel>
@@ -145,15 +147,15 @@ export function ReservationForm() {
                 {...form.register("phone")}
                 type="tel"
                 placeholder="+1 (212) 555-0198"
-                aria-invalid={!!form.formState.errors.phone}
+                aria-invalid={!!errors.phone}
               />
             </InputGroup>
-            <FieldError>{form.formState.errors.phone?.message}</FieldError>
+            <FieldError>{errors.phone?.message}</FieldError>
           </Field>
         </div>
 
         <div className="grid gap-5 sm:grid-cols-3">
-          <Field data-invalid={!!form.formState.errors.date}>
+          <Field data-invalid={!!errors.date}>
             <FieldLabel className="text-xs tracking-wide text-muted-foreground">
               Date *
             </FieldLabel>
@@ -165,14 +167,14 @@ export function ReservationForm() {
                   value={field.value}
                   onChange={field.onChange}
                   placeholder="Select date"
-                  aria-invalid={!!form.formState.errors.date}
+                  aria-invalid={!!errors.date}
                 />
               )}
             />
-            <FieldError>{form.formState.errors.date?.message}</FieldError>
+            <FieldError>{errors.date?.message}</FieldError>
           </Field>
 
-          <Field data-invalid={!!form.formState.errors.time}>
+          <Field data-invalid={!!errors.time}>
             <FieldLabel className="text-xs tracking-wide text-muted-foreground">
               Time *
             </FieldLabel>
@@ -186,7 +188,7 @@ export function ReservationForm() {
                 >
                   <SelectTrigger
                     className="w-full"
-                    aria-invalid={!!form.formState.errors.time}
+                    aria-invalid={!!errors.time}
                   >
                     <SelectValue placeholder="Select time" />
                   </SelectTrigger>
@@ -202,10 +204,10 @@ export function ReservationForm() {
                 </Select>
               )}
             />
-            <FieldError>{form.formState.errors.time?.message}</FieldError>
+            <FieldError>{errors.time?.message}</FieldError>
           </Field>
 
-          <Field data-invalid={!!form.formState.errors.guests}>
+          <Field data-invalid={!!errors.guests}>
             <FieldLabel className="text-xs tracking-wide text-muted-foreground">
               Guests *
             </FieldLabel>
@@ -219,14 +221,14 @@ export function ReservationForm() {
                 min={1}
                 max={20}
                 placeholder="2"
-                aria-invalid={!!form.formState.errors.guests}
+                aria-invalid={!!errors.guests}
               />
             </InputGroup>
-            <FieldError>{form.formState.errors.guests?.message}</FieldError>
+            <FieldError>{errors.guests?.message}</FieldError>
           </Field>
         </div>
 
-        <Field data-invalid={!!form.formState.errors.notes}>
+        <Field data-invalid={!!errors.notes}>
           <FieldLabel className="text-xs tracking-wide text-muted-foreground">
             Special Requests (optional)
           </FieldLabel>
@@ -234,19 +236,19 @@ export function ReservationForm() {
             {...form.register("notes")}
             placeholder="Dietary requirements, special occasions, seating preferences…"
             rows={4}
-            aria-invalid={!!form.formState.errors.notes}
+            aria-invalid={!!errors.notes}
           />
-          <FieldError>{form.formState.errors.notes?.message}</FieldError>
+          <FieldError>{errors.notes?.message}</FieldError>
         </Field>
       </FieldGroup>
 
       <Button
         type="submit"
         size="lg"
-        disabled={form.formState.isSubmitting}
+        disabled={isSubmitting}
         className="w-full tracking-widest"
       >
-        {form.formState.isSubmitting ? "Sending…" : "Request Reservation"}
+        {isSubmitting ? "Sending…" : "Request Reservation"}
       </Button>
 
       <p className="text-center text-xs text-muted-foreground">
