@@ -7,7 +7,11 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "turbo format",
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck",
+    "db:generate": "turbo db:generate",
+    "db:push": "cd packages/db && pnpm db:push",
+    "db:seed": "cd packages/db && pnpm db:seed",
+    "db:migrate": "cd packages/db && pnpm db:migrate"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
@@ -16,6 +20,11 @@
     "prettier-plugin-tailwindcss": "^0.8.0",
     "turbo": "^2.9.15",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "overrides": {
+      "next-auth>next": "*"
+    }
   },
   "packageManager": "pnpm@10.33.4",
   "engines": {
