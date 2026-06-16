@@ -4,6 +4,8 @@ import { Footer } from "@/components/footer"
 import { MenuBook } from "@/components/menu/menu-book"
 import { getMenuWithCategories } from "@/lib/actions/menu"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = { title: "Menu" }
 
 export default async function MenuPage() {

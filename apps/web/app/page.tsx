@@ -15,6 +15,8 @@ import { CtaBanner } from "@/components/home/cta-banner"
 import { getFeaturedItems } from "@/lib/actions/menu"
 import { getOpeningHours } from "@/lib/actions/reservation"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Ocean Sushi — Premium Japanese Cuisine",
 }

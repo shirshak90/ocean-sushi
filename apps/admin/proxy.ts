@@ -1,7 +1,10 @@
-import NextAuth from "next-auth"
+import NextAuth, { type NextAuthResult } from "next-auth"
 import { authConfig } from "@/lib/auth.config"
 
-export const { auth: proxy } = NextAuth(authConfig)
+const result: NextAuthResult = NextAuth(authConfig)
+const proxy: NextAuthResult["auth"] = result.auth
+
+export { proxy }
 export default proxy
 
 export const config = {

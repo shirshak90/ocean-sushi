@@ -9,7 +9,7 @@ import {
   AlertCircle,
 } from "lucide-react"
 import { db, orders, reservations, contactMessages } from "@workspace/db"
-import { eq, inArray, gte, count, sum, desc, and } from "drizzle-orm"
+import { eq, inArray, gte, sum, desc, and, sql } from "drizzle-orm"
 import { formatPrice, formatDateTime } from "@workspace/shared/utils"
 import { ORDER_STATUS_CONFIG } from "@workspace/shared/types"
 
@@ -27,15 +27,15 @@ async function getStats() {
     recentOrders,
     [revenueRow],
   ] = await Promise.all([
-    db.select({ value: count() }).from(orders),
+    db.select({ value: sql<number>`count(*)::int` }).from(orders),
     db
-      .select({ value: count() })
+      .select({ value: sql<number>`count(*)::int` })
       .from(orders)
       .where(
         inArray(orders.status, ["PENDING", "CONFIRMED", "PREPARING", "READY"])
       ),
     db
-      .select({ value: count() })
+      .select({ value: sql<number>`count(*)::int` })
       .from(reservations)
       .where(
         and(
@@ -44,7 +44,7 @@ async function getStats() {
         )
       ),
     db
-      .select({ value: count() })
+      .select({ value: sql<number>`count(*)::int` })
       .from(contactMessages)
       .where(
         and(

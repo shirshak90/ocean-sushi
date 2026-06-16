@@ -1,7 +1,7 @@
 "use server"
 
 import { db, reservations, openingHours } from "@workspace/db"
-import { eq, and, inArray, count, asc } from "drizzle-orm"
+import { eq, and, inArray, asc, sql } from "drizzle-orm"
 import { ReservationSchema } from "@workspace/shared/schemas"
 import { revalidatePath } from "next/cache"
 
@@ -22,7 +22,7 @@ export async function createReservation(
 
   try {
     const [row] = await db
-      .select({ value: count() })
+      .select({ value: sql<number>`count(*)::int` })
       .from(reservations)
       .where(
         and(

@@ -4,6 +4,8 @@ import { Footer } from "@/components/footer"
 import { OrderShell } from "@/components/order/order-shell"
 import { getMenuItemsForOrder } from "@/lib/actions/order"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = { title: "Order Online" }
 
 export default async function OrderPage() {

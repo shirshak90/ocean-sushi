@@ -4,6 +4,8 @@ import { Footer } from "@/components/footer"
 import { GalleryGrid } from "@/components/gallery/gallery-grid"
 import { getGalleryImages } from "@/lib/actions/menu"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = { title: "Gallery" }
 
 export default async function GalleryPage() {

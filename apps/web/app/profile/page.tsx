@@ -25,6 +25,8 @@ import {
 } from "@workspace/shared/types"
 import type { OrderStatus, ReservationStatus } from "@workspace/shared/types"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = { title: "My Profile" }
 
 const CANCELLABLE_STATUSES = new Set(["PENDING", "CONFIRMED", "PREPARING"])
