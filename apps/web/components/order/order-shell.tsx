@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { motion, AnimatePresence } from "framer-motion"
 import { Minus, Plus, Trash2, ShoppingBag, Truck, Store } from "lucide-react"
+import { useSession } from "next-auth/react"
 import { Button } from "@workspace/ui/components/button"
 import {
   Field as FormFieldRoot,
@@ -27,6 +28,7 @@ import { DIETARY_TAG_CONFIG, DELIVERY_FEE } from "@workspace/shared/types"
 import type { DietaryTag } from "@workspace/shared/types"
 import { useCartStore } from "@/stores/cart"
 import { createOrder } from "@/lib/actions/order"
+import { AuthGate } from "@/components/auth/auth-gate"
 
 interface MenuItem {
   id: string
@@ -44,6 +46,8 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
   const [serverError, setServerError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  const { data: session, status: authStatus } = useSession()
 
   const {
     items: cartItems,
@@ -79,6 +83,16 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
   })
 
   const { errors } = form.formState
+
+  // Auto-fill customer fields from session when delivery is selected
+  useEffect(() => {
+    if (session?.user && fulfillmentType === "DELIVERY") {
+      form.setValue("customer.firstName", session.user.firstName ?? "")
+      form.setValue("customer.lastName", session.user.lastName ?? "")
+      form.setValue("customer.email", session.user.email ?? "")
+      form.setValue("customer.phone", session.user.phone ?? "")
+    }
+  }, [session, fulfillmentType, form])
 
   function handleCheckoutSubmit(e: React.FormEvent<HTMLFormElement>) {
     form.setValue(
@@ -117,6 +131,15 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
     acc[key]!.items.push(item)
     return acc
   }, {})
+
+  // Whether we should show the auth gate (delivery + not logged in)
+  const showAuthGate =
+    fulfillmentType === "DELIVERY" && authStatus === "unauthenticated"
+  const authLoading = fulfillmentType === "DELIVERY" && authStatus === "loading"
+  // Show personal info form when: PICKUP, or DELIVERY + authenticated
+  const showPersonalInfo =
+    fulfillmentType === "PICKUP" ||
+    (fulfillmentType === "DELIVERY" && authStatus === "authenticated")
 
   return (
     <div className="mx-auto max-w-7xl px-6 pb-24">
@@ -300,79 +323,30 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                 </div>
               </section>
 
-              {/* Personal data */}
-              <section>
-                <h3 className="mb-4 font-heading text-lg">
-                  Personal Information
-                </h3>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Field
-                    label="First Name *"
-                    error={errors.customer?.firstName?.message}
-                  >
-                    <InputGroup>
-                      <InputGroupInput
-                        {...form.register("customer.firstName")}
-                        placeholder="Kenji"
-                        aria-invalid={!!errors.customer?.firstName}
-                      />
-                    </InputGroup>
-                  </Field>
-                  <Field
-                    label="Last Name *"
-                    error={errors.customer?.lastName?.message}
-                  >
-                    <InputGroup>
-                      <InputGroupInput
-                        {...form.register("customer.lastName")}
-                        placeholder="Tanaka"
-                        aria-invalid={!!errors.customer?.lastName}
-                      />
-                    </InputGroup>
-                  </Field>
-                  <Field
-                    label="Email *"
-                    error={errors.customer?.email?.message}
-                  >
-                    <InputGroup>
-                      <InputGroupInput
-                        {...form.register("customer.email")}
-                        type="email"
-                        placeholder="you@example.com"
-                        aria-invalid={!!errors.customer?.email}
-                      />
-                    </InputGroup>
-                  </Field>
-                  <Field
-                    label="Phone *"
-                    error={errors.customer?.phone?.message}
-                  >
-                    <InputGroup>
-                      <InputGroupInput
-                        {...form.register("customer.phone")}
-                        type="tel"
-                        placeholder="+1 (212) 555-0198"
-                        aria-invalid={!!errors.customer?.phone}
-                      />
-                    </InputGroup>
-                  </Field>
-                  <Field
-                    label="Company / Team (optional)"
-                    className="sm:col-span-2"
-                  >
-                    <InputGroup>
-                      <InputGroupInput
-                        {...form.register("customer.companyName")}
-                        placeholder="Optional"
-                      />
-                    </InputGroup>
-                  </Field>
-                </div>
-              </section>
-
-              {/* Address — only for delivery */}
+              {/* Auth gate — delivery + unauthenticated */}
               <AnimatePresence>
-                {fulfillmentType === "DELIVERY" && (
+                {showAuthGate && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <AuthGate />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Auth loading skeleton */}
+              {authLoading && (
+                <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
+                  Loading…
+                </div>
+              )}
+
+              {/* Personal data — shown for pickup always, and delivery when authenticated */}
+              <AnimatePresence>
+                {showPersonalInfo && (
                   <motion.section
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
@@ -380,82 +354,162 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                     transition={{ duration: 0.3 }}
                   >
                     <h3 className="mb-4 font-heading text-lg">
-                      Delivery Address
+                      Personal Information
                     </h3>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <Field
-                        label="Street *"
-                        error={errors.address?.street?.message}
+                        label="First Name *"
+                        error={errors.customer?.firstName?.message}
+                      >
+                        <InputGroup>
+                          <InputGroupInput
+                            {...form.register("customer.firstName")}
+                            placeholder="Kenji"
+                            aria-invalid={!!errors.customer?.firstName}
+                          />
+                        </InputGroup>
+                      </Field>
+                      <Field
+                        label="Last Name *"
+                        error={errors.customer?.lastName?.message}
+                      >
+                        <InputGroup>
+                          <InputGroupInput
+                            {...form.register("customer.lastName")}
+                            placeholder="Tanaka"
+                            aria-invalid={!!errors.customer?.lastName}
+                          />
+                        </InputGroup>
+                      </Field>
+                      <Field
+                        label="Email *"
+                        error={errors.customer?.email?.message}
+                      >
+                        <InputGroup>
+                          <InputGroupInput
+                            {...form.register("customer.email")}
+                            type="email"
+                            placeholder="you@example.com"
+                            aria-invalid={!!errors.customer?.email}
+                          />
+                        </InputGroup>
+                      </Field>
+                      <Field
+                        label="Phone *"
+                        error={errors.customer?.phone?.message}
+                      >
+                        <InputGroup>
+                          <InputGroupInput
+                            {...form.register("customer.phone")}
+                            type="tel"
+                            placeholder="+1 (212) 555-0198"
+                            aria-invalid={!!errors.customer?.phone}
+                          />
+                        </InputGroup>
+                      </Field>
+                      <Field
+                        label="Company / Team (optional)"
                         className="sm:col-span-2"
                       >
                         <InputGroup>
                           <InputGroupInput
-                            {...form.register("address.street")}
-                            placeholder="Sakura Street"
-                            aria-invalid={!!errors.address?.street}
-                          />
-                        </InputGroup>
-                      </Field>
-                      <Field
-                        label="Number *"
-                        error={errors.address?.number?.message}
-                      >
-                        <InputGroup>
-                          <InputGroupInput
-                            {...form.register("address.number")}
-                            placeholder="123"
-                            aria-invalid={!!errors.address?.number}
-                          />
-                        </InputGroup>
-                      </Field>
-                      <Field label="Bus / Apt (optional)">
-                        <InputGroup>
-                          <InputGroupInput
-                            {...form.register("address.bus")}
-                            placeholder="Apt 4B"
-                          />
-                        </InputGroup>
-                      </Field>
-                      <Field
-                        label="Postal Code *"
-                        error={errors.address?.postalCode?.message}
-                      >
-                        <InputGroup>
-                          <InputGroupInput
-                            {...form.register("address.postalCode")}
-                            placeholder="10001"
-                            aria-invalid={!!errors.address?.postalCode}
-                          />
-                        </InputGroup>
-                      </Field>
-                      <Field
-                        label="City *"
-                        error={errors.address?.city?.message}
-                      >
-                        <InputGroup>
-                          <InputGroupInput
-                            {...form.register("address.city")}
-                            placeholder="New York"
-                            aria-invalid={!!errors.address?.city}
-                          />
-                        </InputGroup>
-                      </Field>
-                      <Field
-                        label="Country *"
-                        error={errors.address?.country?.message}
-                        className="sm:col-span-2"
-                      >
-                        <InputGroup>
-                          <InputGroupInput
-                            {...form.register("address.country")}
-                            placeholder="United States"
-                            aria-invalid={!!errors.address?.country}
+                            {...form.register("customer.companyName")}
+                            placeholder="Optional"
                           />
                         </InputGroup>
                       </Field>
                     </div>
                   </motion.section>
                 )}
+              </AnimatePresence>
+
+              {/* Address — only for delivery */}
+              <AnimatePresence>
+                {fulfillmentType === "DELIVERY" &&
+                  authStatus === "authenticated" && (
+                    <motion.section
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <h3 className="mb-4 font-heading text-lg">
+                        Delivery Address
+                      </h3>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <Field
+                          label="Street *"
+                          error={errors.address?.street?.message}
+                          className="sm:col-span-2"
+                        >
+                          <InputGroup>
+                            <InputGroupInput
+                              {...form.register("address.street")}
+                              placeholder="Sakura Street"
+                              aria-invalid={!!errors.address?.street}
+                            />
+                          </InputGroup>
+                        </Field>
+                        <Field
+                          label="Number *"
+                          error={errors.address?.number?.message}
+                        >
+                          <InputGroup>
+                            <InputGroupInput
+                              {...form.register("address.number")}
+                              placeholder="123"
+                              aria-invalid={!!errors.address?.number}
+                            />
+                          </InputGroup>
+                        </Field>
+                        <Field label="Bus / Apt (optional)">
+                          <InputGroup>
+                            <InputGroupInput
+                              {...form.register("address.bus")}
+                              placeholder="Apt 4B"
+                            />
+                          </InputGroup>
+                        </Field>
+                        <Field
+                          label="Postal Code *"
+                          error={errors.address?.postalCode?.message}
+                        >
+                          <InputGroup>
+                            <InputGroupInput
+                              {...form.register("address.postalCode")}
+                              placeholder="10001"
+                              aria-invalid={!!errors.address?.postalCode}
+                            />
+                          </InputGroup>
+                        </Field>
+                        <Field
+                          label="City *"
+                          error={errors.address?.city?.message}
+                        >
+                          <InputGroup>
+                            <InputGroupInput
+                              {...form.register("address.city")}
+                              placeholder="New York"
+                              aria-invalid={!!errors.address?.city}
+                            />
+                          </InputGroup>
+                        </Field>
+                        <Field
+                          label="Country *"
+                          error={errors.address?.country?.message}
+                          className="sm:col-span-2"
+                        >
+                          <InputGroup>
+                            <InputGroupInput
+                              {...form.register("address.country")}
+                              placeholder="United States"
+                              aria-invalid={!!errors.address?.country}
+                            />
+                          </InputGroup>
+                        </Field>
+                      </div>
+                    </motion.section>
+                  )}
               </AnimatePresence>
 
               {/* Order details */}
@@ -492,7 +546,12 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                 <Button
                   type="submit"
                   className="flex-1"
-                  disabled={loading || cartItems.length === 0}
+                  disabled={
+                    loading ||
+                    cartItems.length === 0 ||
+                    showAuthGate ||
+                    authLoading
+                  }
                 >
                   {loading
                     ? "Placing order…"

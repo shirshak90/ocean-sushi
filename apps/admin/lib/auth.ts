@@ -58,21 +58,6 @@ const config: NextAuthConfig = {
       },
     }),
   ],
-  callbacks: {
-    jwt({ token, user }) {
-      if (user) {
-        token["role"] = user.role
-        token["userId"] = user.id
-      }
-      return token
-    },
-    session({ session, token }) {
-      const s = session as typeof session & { user: { id: string; role: Role } }
-      s.user.role = token["role"] as Role
-      s.user.id = token["userId"] as string
-      return session
-    },
-  },
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth(config)

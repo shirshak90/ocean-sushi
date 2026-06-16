@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, ShoppingBag } from "lucide-react"
+import { Menu, X, ShoppingBag, User, LogOut } from "lucide-react"
+import { useSession, signOut } from "next-auth/react"
 import { cn } from "@workspace/ui/lib/utils"
 import { useCartStore } from "@/stores/cart"
 
@@ -19,11 +20,13 @@ const links = [
 
 export function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [visible, setVisible] = useState(true)
   const [atTop, setAtTop] = useState(true)
   const lastScrollY = useRef(0)
   const totalItems = useCartStore((s) => s.totalItems())
+  const { data: session, status } = useSession()
 
   useEffect(() => {
     function onScroll() {
@@ -39,6 +42,14 @@ export function Navbar() {
   useEffect(() => {
     setOpen(false)
   }, [pathname])
+
+  const isAuthenticated = status === "authenticated"
+  const firstName = session?.user?.firstName
+
+  function handleSignOut() {
+    setOpen(false)
+    void signOut({ callbackUrl: "/" })
+  }
 
   return (
     <>
@@ -94,6 +105,7 @@ export function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-4">
+            {/* Cart */}
             <Link
               href="/order"
               className="relative rounded-full p-2 text-muted-foreground transition-colors hover:text-primary"
@@ -106,6 +118,50 @@ export function Navbar() {
                 </span>
               )}
             </Link>
+
+            {/* Auth — desktop */}
+            <div className="hidden items-center gap-3 md:flex">
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    href="/profile"
+                    className={cn(
+                      "flex items-center gap-1.5 text-sm tracking-widest transition-colors duration-200",
+                      pathname.startsWith("/profile")
+                        ? "text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <User className="size-4" />
+                    {firstName ? firstName.toUpperCase() : "PROFILE"}
+                  </Link>
+                  <button
+                    onClick={handleSignOut}
+                    className="rounded p-1.5 text-muted-foreground transition-colors hover:text-destructive"
+                    aria-label="Sign out"
+                  >
+                    <LogOut className="size-4" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="text-sm tracking-widest text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    LOGIN
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="rounded border border-primary/40 px-3 py-1 text-xs tracking-widest text-primary transition-colors hover:bg-primary/10"
+                  >
+                    REGISTER
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {/* Mobile menu toggle */}
             <button
               className="rounded p-1.5 text-muted-foreground transition-colors hover:text-foreground md:hidden"
               onClick={() => setOpen((v) => !v)}
@@ -159,6 +215,50 @@ export function Navbar() {
                     </Link>
                   )
                 })}
+
+                {/* Auth links — mobile */}
+                <div className="flex flex-col gap-4 border-t border-border pt-6">
+                  {isAuthenticated ? (
+                    <>
+                      <Link
+                        href="/profile"
+                        className={cn(
+                          "flex items-center gap-2 text-sm tracking-[0.2em] transition-colors",
+                          pathname.startsWith("/profile")
+                            ? "text-primary"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        <User className="size-4" />
+                        {firstName
+                          ? `${firstName.toUpperCase()} (PROFILE)`
+                          : "PROFILE"}
+                      </Link>
+                      <button
+                        onClick={handleSignOut}
+                        className="flex items-center gap-2 text-sm tracking-[0.2em] text-muted-foreground transition-colors hover:text-destructive"
+                      >
+                        <LogOut className="size-4" />
+                        SIGN OUT
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/login"
+                        className="text-sm tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        LOGIN
+                      </Link>
+                      <Link
+                        href="/register"
+                        className="text-sm tracking-[0.2em] text-primary transition-colors hover:text-primary/80"
+                      >
+                        REGISTER
+                      </Link>
+                    </>
+                  )}
+                </div>
               </div>
             </motion.nav>
           </>

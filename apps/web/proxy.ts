@@ -1,0 +1,7 @@
+import NextAuth from "next-auth"
+import { authConfig } from "@/lib/auth.config"
+
+export const { auth: proxy } = NextAuth(authConfig)
+export default proxy
+
+export const config = { matcher: ["/profile/:path*"] }

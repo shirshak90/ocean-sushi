@@ -130,6 +130,22 @@ export const MenuCategorySchema = z.object({
   sortOrder: z.number().int().min(0).optional(),
 })
 
+export const CustomerRegisterSchema = z
+  .object({
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    email: z.string().email("Invalid email address"),
+    phone: z.string().min(6, "Phone number is required"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  })
+
+export type CustomerRegisterInput = z.infer<typeof CustomerRegisterSchema>
+
 export type AddressInput = z.infer<typeof AddressSchema>
 export type CustomerInput = z.infer<typeof CustomerSchema>
 export type CreateOrderInput = z.infer<typeof CreateOrderSchema>
@@ -144,3 +160,4 @@ export type UpdateReservationStatusInput = z.infer<
 export type OpeningHourInput = z.infer<typeof OpeningHourSchema>
 export type GalleryImageInput = z.infer<typeof GalleryImageSchema>
 export type MenuCategoryInput = z.infer<typeof MenuCategorySchema>
+// CustomerRegisterInput is already exported inline above
