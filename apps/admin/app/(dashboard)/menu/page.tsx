@@ -4,6 +4,7 @@ import { formatPrice } from "@workspace/shared/utils"
 import { DIETARY_TAG_CONFIG } from "@workspace/shared/types"
 import type { DietaryTag } from "@workspace/shared/types"
 import { MenuItemActions } from "@/components/menu/menu-item-actions"
+import { CategoryActions } from "@/components/menu/category-actions"
 
 export const metadata: Metadata = { title: "Menu Management" }
 
@@ -27,7 +28,10 @@ export default async function MenuPage() {
             {items.length} items across {categories.length} categories
           </p>
         </div>
-        <MenuItemActions mode="create" categories={categories} />
+        <div className="flex items-center gap-2">
+          <CategoryActions categories={categories} />
+          <MenuItemActions mode="create" categories={categories} />
+        </div>
       </div>
 
       {byCategory.map((cat) => (

@@ -117,9 +117,17 @@ export const OpeningHourSchema = z.object({
 })
 
 export const GalleryImageSchema = z.object({
-  url: z.string().min(1, "Image URL is required").url("Please enter a valid URL"),
+  url: z
+    .string()
+    .min(1, "Image URL is required")
+    .url("Please enter a valid URL"),
   category: z.string().min(1, "Category is required"),
   title: z.string().optional(),
+})
+
+export const MenuCategorySchema = z.object({
+  name: z.string().min(1, "Name is required").max(60, "Name is too long"),
+  sortOrder: z.number().int().min(0).optional(),
 })
 
 export type AddressInput = z.infer<typeof AddressSchema>
@@ -135,3 +143,4 @@ export type UpdateReservationStatusInput = z.infer<
 >
 export type OpeningHourInput = z.infer<typeof OpeningHourSchema>
 export type GalleryImageInput = z.infer<typeof GalleryImageSchema>
+export type MenuCategoryInput = z.infer<typeof MenuCategorySchema>
