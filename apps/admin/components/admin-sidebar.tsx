@@ -32,7 +32,7 @@ export function AdminSidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="flex h-screen w-60 flex-col border-r border-sidebar-border bg-sidebar">
+    <aside className="flex h-screen w-60 flex-col border-r border-sidebar-border bg-sidebar print:hidden">
       {/* Brand */}
       <div className="flex h-16 items-center border-b border-sidebar-border px-5">
         <span className="font-heading text-lg tracking-widest text-primary">

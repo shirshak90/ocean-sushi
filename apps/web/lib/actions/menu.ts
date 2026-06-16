@@ -16,7 +16,7 @@ export async function getMenuWithCategories() {
 }
 
 export async function getFeaturedItems() {
-  return db.query.menuItems.findMany({
+  const rows = await db.query.menuItems.findMany({
     where: and(eq(menuItems.featured, true), eq(menuItems.available, true)),
     with: {
       category: { columns: { name: true, slug: true } },
@@ -24,6 +24,7 @@ export async function getFeaturedItems() {
     orderBy: (t, { asc }) => [asc(t.sortOrder)],
     limit: 6,
   })
+  return rows.map((r) => ({ ...r, price: parseFloat(r.price) }))
 }
 
 export async function getGalleryImages() {

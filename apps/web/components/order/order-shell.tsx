@@ -64,6 +64,7 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
   const form = useForm<CreateOrderInput>({
     ...zodFormOptions,
     resolver: zodResolver(CreateOrderSchema),
+    shouldUnregister: true,
     defaultValues: {
       fulfillmentType: "PICKUP",
       items: [],
@@ -73,14 +74,6 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
         email: "",
         phone: "",
         companyName: "",
-      },
-      address: {
-        street: "",
-        number: "",
-        bus: "",
-        postalCode: "",
-        city: "",
-        country: "",
       },
     },
   })
@@ -160,8 +153,8 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                                   className="h-full w-full object-cover"
                                 />
                               ) : (
-                                <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-900 to-stone-800">
-                                  <span className="font-heading text-xl text-primary/20">
+                                <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-100 to-stone-200">
+                                  <span className="font-heading text-xl text-primary/30">
                                     海
                                   </span>
                                 </div>
@@ -275,6 +268,10 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                       onClick={() => {
                         setFulfillmentType(type)
                         form.setValue("fulfillmentType", type)
+                        if (type === "PICKUP") {
+                          form.setValue("address", undefined)
+                          form.clearErrors("address")
+                        }
                       }}
                       className={cn(
                         "flex items-center gap-3 rounded-lg border p-4 text-left transition-colors",
@@ -317,9 +314,7 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                       <InputGroupInput
                         {...form.register("customer.firstName")}
                         placeholder="Kenji"
-                        aria-invalid={
-                          !!errors.customer?.firstName
-                        }
+                        aria-invalid={!!errors.customer?.firstName}
                       />
                     </InputGroup>
                   </Field>
@@ -423,17 +418,13 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                       </Field>
                       <Field
                         label="Postal Code *"
-                        error={
-                          errors.address?.postalCode?.message
-                        }
+                        error={errors.address?.postalCode?.message}
                       >
                         <InputGroup>
                           <InputGroupInput
                             {...form.register("address.postalCode")}
                             placeholder="10001"
-                            aria-invalid={
-                              !!errors.address?.postalCode
-                            }
+                            aria-invalid={!!errors.address?.postalCode}
                           />
                         </InputGroup>
                       </Field>
@@ -458,9 +449,7 @@ export function OrderShell({ items }: { items: MenuItem[] }) {
                           <InputGroupInput
                             {...form.register("address.country")}
                             placeholder="United States"
-                            aria-invalid={
-                              !!errors.address?.country
-                            }
+                            aria-invalid={!!errors.address?.country}
                           />
                         </InputGroup>
                       </Field>

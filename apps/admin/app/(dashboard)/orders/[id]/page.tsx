@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
 import { AdminLink } from "@/components/admin-link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, Printer } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
+import { PrintButton } from "@/components/orders/print-button"
 import { getOrderById } from "@/lib/actions/orders"
 import { formatPrice, formatDateTime } from "@workspace/shared/utils"
 import { ORDER_STATUS_CONFIG } from "@workspace/shared/types"
@@ -30,14 +31,7 @@ export default async function OrderDetailPage({
             <ArrowLeft className="size-4" /> Orders
           </AdminLink>
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          onClick={() => window.print()}
-        >
-          <Printer className="size-4" /> Print Ticket
-        </Button>
+        <PrintButton />
       </div>
 
       <div className="flex flex-col gap-6">
