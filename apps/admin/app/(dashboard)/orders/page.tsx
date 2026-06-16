@@ -1,13 +1,20 @@
 import type { Metadata } from "next"
 import { AdminLink } from "@/components/admin-link"
-import { db, orders as ordersTable, orderItems as orderItemsTable } from "@workspace/db"
+import {
+  db,
+  orders as ordersTable,
+  orderItems as orderItemsTable,
+} from "@workspace/db"
 import { eq, desc, sql, inArray } from "drizzle-orm"
 import { formatPrice, formatDateTime } from "@workspace/shared/utils"
 import { ORDER_STATUS_CONFIG } from "@workspace/shared/types"
 import type { OrderStatus } from "@workspace/shared/types"
 import { OrderStatusUpdater } from "@/components/orders/order-status-updater"
+import { Pagination } from "@/components/pagination"
 
 export const metadata: Metadata = { title: "Orders" }
+
+const PAGE_SIZE = 20
 
 const STATUS_TABS: { label: string; value: string }[] = [
   { label: "All", value: "all" },
@@ -23,21 +30,40 @@ const STATUS_TABS: { label: string; value: string }[] = [
 export default async function OrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>
+  searchParams: Promise<{ status?: string; page?: string }>
 }) {
-  const { status } = await searchParams
+  const { status, page: pageParam } = await searchParams
   const activeStatus = status && status !== "all" ? status : undefined
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1)
+  const offset = (page - 1) * PAGE_SIZE
 
-  const orders = await db.query.orders.findMany({
-    where: activeStatus
-      ? eq(ordersTable.status, activeStatus as OrderStatus)
-      : undefined,
-    orderBy: (t, { desc }) => [desc(t.createdAt)],
-    limit: 100,
-    with: {
-      customer: { columns: { firstName: true, lastName: true, email: true } },
-    },
-  })
+  const whereClause = activeStatus
+    ? eq(ordersTable.status, activeStatus as OrderStatus)
+    : undefined
+
+  const [[countRow], orders] = await Promise.all([
+    whereClause
+      ? db
+          .select({ total: sql<number>`count(*)::int` })
+          .from(ordersTable)
+          .where(whereClause)
+      : db.select({ total: sql<number>`count(*)::int` }).from(ordersTable),
+    db.query.orders.findMany({
+      where: whereClause,
+      orderBy: (t, { desc }) => [desc(t.createdAt)],
+      limit: PAGE_SIZE,
+      offset,
+      with: {
+        customer: { columns: { firstName: true, lastName: true, email: true } },
+      },
+    }),
+  ])
+
+  const total = countRow?.total ?? 0
+  const totalPages = Math.ceil(total / PAGE_SIZE)
+  const paginationParams: Record<string, string> = activeStatus
+    ? { status: activeStatus }
+    : {}
 
   const orderIds = orders.map((o) => o.id)
   const itemCounts =
@@ -61,11 +87,10 @@ export default async function OrdersPage({
       <div>
         <h1 className="font-heading text-2xl font-light">Orders</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {orders.length} order{orders.length !== 1 ? "s" : ""}
+          {total} order{total !== 1 ? "s" : ""}
         </p>
       </div>
 
-      {/* Status filter tabs */}
       <div className="flex flex-wrap gap-2">
         {STATUS_TABS.map((tab) => {
           const current = status ?? "all"
@@ -82,7 +107,6 @@ export default async function OrdersPage({
         })}
       </div>
 
-      {/* Table */}
       <div className="overflow-hidden rounded-lg border border-border bg-card">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -164,6 +188,12 @@ export default async function OrdersPage({
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          baseHref="/orders"
+          params={paginationParams}
+        />
       </div>
     </div>
   )
