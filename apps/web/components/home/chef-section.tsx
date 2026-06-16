@@ -16,7 +16,7 @@ export function ChefSection() {
             className="relative"
           >
             <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-primary/20 bg-card">
-              <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-950 via-stone-900 to-stone-950">
+              <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-100 via-stone-50 to-stone-100">
                 <div className="text-center">
                   <p className="font-heading text-7xl text-primary/20">職人</p>
                   <p className="mt-2 text-xs tracking-[0.3em] text-muted-foreground">

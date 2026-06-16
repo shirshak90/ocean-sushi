@@ -55,7 +55,7 @@ export function GalleryPreview() {
               }}
               className={`group relative overflow-hidden rounded-lg border border-border bg-card ${item.span}`}
             >
-              <div className="flex h-full min-h-40 items-center justify-center bg-gradient-to-br from-stone-950 via-stone-900 to-stone-950 transition-transform duration-500 group-hover:scale-105">
+              <div className="flex h-full min-h-40 items-center justify-center bg-gradient-to-br from-stone-100 via-stone-50 to-stone-100 transition-transform duration-500 group-hover:scale-105">
                 <div className="text-center">
                   <p className="font-heading text-3xl text-primary/20">海</p>
                   <p className="mt-1 text-xs tracking-widest text-muted-foreground">
@@ -63,7 +63,7 @@ export function GalleryPreview() {
                   </p>
                 </div>
               </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               <div className="absolute bottom-3 left-3 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                 <span className="rounded bg-background/80 px-2 py-0.5 text-xs text-muted-foreground backdrop-blur-sm">
                   {item.category}

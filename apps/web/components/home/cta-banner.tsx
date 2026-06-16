@@ -8,18 +8,18 @@ export function CtaBanner() {
   return (
     <section className="relative overflow-hidden py-32">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black via-stone-950 to-black" />
+      <div className="absolute inset-0 bg-gradient-to-br from-stone-100 via-stone-50 to-amber-50" />
       <div
-        className="absolute inset-0 opacity-30"
+        className="absolute inset-0 opacity-50"
         style={{
-          backgroundImage: `radial-gradient(ellipse 70% 50% at 50% 50%, oklch(0.72 0.17 85 / 0.12) 0%, transparent 70%)`,
+          backgroundImage: `radial-gradient(ellipse 70% 50% at 50% 50%, oklch(0.60 0.17 85 / 0.10) 0%, transparent 70%)`,
         }}
       />
 
       {/* Watermark text */}
       <div className="absolute inset-0 flex items-center justify-center overflow-hidden select-none">
         <p
-          className="font-heading text-[18vw] leading-none font-light text-white/[0.02]"
+          className="font-heading text-[18vw] leading-none font-light text-foreground/[0.04]"
           aria-hidden
         >
           OCEAN SUSHI

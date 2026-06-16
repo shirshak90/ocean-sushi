@@ -27,7 +27,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn(
-        "dark antialiased",
+        "antialiased",
         geist.variable,
         fontMono.variable,
         cormorant.variable,

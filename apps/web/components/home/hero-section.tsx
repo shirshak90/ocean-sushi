@@ -9,11 +9,11 @@ export function HeroSection() {
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden">
       {/* Layered background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black via-stone-950 to-black" />
+      <div className="absolute inset-0 bg-gradient-to-br from-stone-100 via-stone-50 to-amber-50" />
       <div
-        className="absolute inset-0 opacity-20"
+        className="absolute inset-0 opacity-40"
         style={{
-          backgroundImage: `radial-gradient(ellipse 80% 60% at 50% 40%, oklch(0.72 0.17 85 / 0.15) 0%, transparent 70%)`,
+          backgroundImage: `radial-gradient(ellipse 80% 60% at 50% 40%, oklch(0.60 0.17 85 / 0.10) 0%, transparent 70%)`,
         }}
       />
 
@@ -24,7 +24,7 @@ export function HeroSection() {
       {/* Japanese character watermark */}
       <div className="absolute top-1/2 right-12 -translate-y-1/2 select-none">
         <p
-          className="font-heading text-[8rem] leading-none font-light text-white/[0.03] lg:text-[12rem]"
+          className="font-heading text-[8rem] leading-none font-light text-foreground/5 lg:text-[12rem]"
           aria-hidden
         >
           海

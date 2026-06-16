@@ -92,11 +92,11 @@ function FeaturedCard({ item }: { item: Item }) {
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-900 to-stone-800">
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-100 to-stone-200">
             <span className="font-heading text-4xl text-primary/30">海</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-card/60 to-transparent" />
       </div>
 
       {/* Content */}
